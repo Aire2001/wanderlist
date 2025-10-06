@@ -1,6 +1,31 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+
+# ==============================
+# ✅ USER PROFILE MODEL
+# ==============================
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
+
+# Automatically create/update a profile when a user is created
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+    instance.userprofile.save()
+
+
+# ==============================
+# ✅ DESTINATION MODEL
+# ==============================
 class Destination(models.Model):
     COUNTRY_CHOICES = [
         ("", "Select a country"),
@@ -194,8 +219,8 @@ class Destination(models.Model):
     name = models.CharField(max_length=255)
     location = models.CharField(max_length=255, choices=COUNTRY_CHOICES, default="")
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Choose")
-    created_at = models.DateTimeField(auto_now_add=True)  # ✅ When added
-    updated_at = models.DateTimeField(auto_now=True)      # ✅ Auto-updates on edit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):

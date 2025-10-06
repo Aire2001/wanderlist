@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from .models import Destination
+from .models import Destination, UserProfile
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -253,4 +254,35 @@ class DestinationForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+# ==============================
+# ✅ PROFILE UPDATE FORM
+# ==============================
+class UserUpdateForm(forms.ModelForm):
+    """Allows users to update their username and email"""
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+        widgets = {
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Update username'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Update email'
+            }),
+        }
+
+
+class ProfileUpdateForm(forms.ModelForm):
+    """Allows users to update or upload profile picture"""
+    class Meta:
+        model = UserProfile
+        fields = ['profile_picture']
+        widgets = {
+            'profile_picture': forms.ClearableFileInput(attrs={
+                'class': 'form-control'
+            }),
         }

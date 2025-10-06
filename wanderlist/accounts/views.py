@@ -2,8 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import CustomUserCreationForm, CustomAuthenticationForm, DestinationForm
-from .models import Destination
+from .forms import (
+    CustomUserCreationForm,
+    CustomAuthenticationForm,
+    DestinationForm,
+    UserUpdateForm,
+    ProfileUpdateForm,
+)
+from .models import Destination, UserProfile
 
 
 # ---------- HOME ----------
@@ -19,7 +25,31 @@ def about(request):
 # ---------- PROFILE ----------
 @login_required
 def profile_view(request):
-    return render(request, "profile.html")
+    """View and edit user profile (username, email, and profile picture)."""
+    user = request.user
+    profile, created = UserProfile.objects.get_or_create(user=user)
+
+    if request.method == "POST":
+        user_form = UserUpdateForm(request.POST, instance=user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, "✅ Profile updated successfully!")
+            return redirect("profile")
+        else:
+            messages.error(request, "❌ Please correct the errors below.")
+    else:
+        user_form = UserUpdateForm(instance=user)
+        profile_form = ProfileUpdateForm(instance=profile)
+
+    context = {
+        "user_form": user_form,
+        "profile_form": profile_form,
+        "profile": profile,
+    }
+    return render(request, "profile.html", context)
 
 
 # ---------- AUTH ----------
@@ -28,11 +58,13 @@ def register_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            # ✅ create a blank profile automatically
+            UserProfile.objects.create(user=user)
             login(request, user)
-            messages.success(request, "Account created successfully 🎉")
+            messages.success(request, "🎉 Account created successfully!")
             return redirect("destination_list")
         else:
-            messages.error(request, "Please correct the errors below ❌")
+            messages.error(request, "❌ Please correct the errors below.")
     else:
         form = CustomUserCreationForm()
     return render(request, "register.html", {"form": form})
@@ -44,10 +76,10 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            messages.success(request, f"Welcome back 👋 {user.username}")
+            messages.success(request, f"👋 Welcome back, {user.username}!")
             return redirect("destination_list")
         else:
-            messages.error(request, "Invalid username or password ❌")
+            messages.error(request, "❌ Invalid username or password.")
     else:
         form = CustomAuthenticationForm()
     return render(request, "login.html", {"form": form})
@@ -55,7 +87,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    messages.info(request, "You have been logged out 👋")
+    messages.info(request, "👋 You have been logged out.")
     return redirect("login")
 
 
@@ -78,7 +110,7 @@ def destination_create(request):
             messages.success(request, f"✅ '{destination.name}' added successfully!")
             return redirect("destination_list")
         else:
-            messages.error(request, "Please correct the form errors ❌")
+            messages.error(request, "❌ Please correct the form errors.")
     else:
         form = DestinationForm()
     return render(request, "destinations/destination_form.html", {"form": form})
@@ -93,10 +125,14 @@ def destination_update(request, pk):
         if form.is_valid():
             updated_destination = form.save(commit=False)
             updated_destination.save()  # auto-updates updated_at
-            messages.success(request, f"✏️ '{updated_destination.name}' updated successfully on {updated_destination.updated_at.strftime('%b %d, %Y %I:%M %p')}")
+            messages.success(
+                request,
+                f"✏️ '{updated_destination.name}' updated successfully on "
+                f"{updated_destination.updated_at.strftime('%b %d, %Y %I:%M %p')}"
+            )
             return redirect("destination_list")
         else:
-            messages.error(request, "Please correct the errors below ❌")
+            messages.error(request, "❌ Please correct the errors below.")
     else:
         form = DestinationForm(instance=destination)
     return render(request, "destinations/destination_form.html", {"form": form, "destination": destination})
