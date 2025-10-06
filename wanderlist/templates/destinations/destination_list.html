@@ -4,31 +4,42 @@
 <h2 class="mb-4">📌 My Destinations</h2>
 <a href="{% url 'destination_create' %}" class="btn btn-primary mb-3">➕ Add Destination</a>
 
-<table class="table table-striped">
-  <thead>
+<table class="table table-striped align-middle text-center shadow-sm">
+  <thead class="table-dark">
     <tr>
       <th>Name</th>
       <th>Location</th>
       <th>Status</th>
       <th>Created</th>
-      <th>Updated</th>
+      <th>Last Updated</th>
       <th>Actions</th>
     </tr>
   </thead>
   <tbody>
     {% for destination in destinations %}
     <tr>
-      <td>{{ destination.name }}</td>
+      <td><strong>{{ destination.name }}</strong></td>
       <td>{{ destination.location }}</td>
       <td>
         {% if destination.status == "wishlist" %}
-          <span class="badge bg-warning">Wishlist</span>
+          <span class="badge bg-warning text-dark">Wishlist</span>
+        {% elif destination.status == "Vacation" %}
+          <span class="badge bg-info text-dark">Vacation</span>
         {% else %}
           <span class="badge bg-success">Visited</span>
         {% endif %}
       </td>
+
       <td>{{ destination.created_at|date:"M d, Y h:i A" }}</td>
-      <td>{{ destination.updated_at|date:"M d, Y h:i A" }}</td>
+      <td>
+        {% if destination.updated_at > destination.created_at %}
+          <span class="text-success fw-semibold">
+            {{ destination.updated_at|date:"M d, Y h:i A" }}
+          </span>
+        {% else %}
+          <span class="text-muted">No edits yet</span>
+        {% endif %}
+      </td>
 
       <td>
         <a href="{% url 'destination_update' destination.pk %}" class="btn btn-sm btn-outline-primary">✏️ Edit</a>
@@ -37,7 +48,7 @@
     </tr>
     {% empty %}
     <tr>
-      <td colspan="6" class="text-center">No destinations yet. Add one!</td>
+      <td colspan="6" class="text-center text-muted">No destinations yet. Add one!</td>
     </tr>
     {% endfor %}
   </tbody>

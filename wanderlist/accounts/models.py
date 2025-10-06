@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
 class Destination(models.Model):
     COUNTRY_CHOICES = [
         ("", "Select a country"),
@@ -185,15 +184,18 @@ class Destination(models.Model):
         ("Zimbabwe", "Zimbabwe"),
     ]
 
+    STATUS_CHOICES = [
+        ("Choose", "Choose"),
+        ("wishlist", "Wishlist"),
+        ("visited", "Visited"),
+        ("Vacation", "Vacation"),
+    ]
+
     name = models.CharField(max_length=255)
     location = models.CharField(max_length=255, choices=COUNTRY_CHOICES, default="")
-    status = models.CharField(
-        max_length=50,
-        choices=[("Choose", "Choose"),("wishlist", "Wishlist"), ("visited", "Visited"),("Vacation", "Vacation")],
-        default="Choose",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)   # ✅ fixed indent
-    updated_at = models.DateTimeField(auto_now=True)       # ✅ auto updates on edit
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Choose")
+    created_at = models.DateTimeField(auto_now_add=True)  # ✅ When added
+    updated_at = models.DateTimeField(auto_now=True)      # ✅ Auto-updates on edit
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
