@@ -1,0 +1,45 @@
+{% extends "dashboard_base.html" %}
+
+{% block content %}
+<h2 class="mb-4">📌 My Destinations</h2>
+<a href="{% url 'destination_create' %}" class="btn btn-primary mb-3">➕ Add Destination</a>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Location</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th>Updated</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for destination in destinations %}
+    <tr>
+      <td>{{ destination.name }}</td>
+      <td>{{ destination.location }}</td>
+      <td>
+        {% if destination.status == "wishlist" %}
+          <span class="badge bg-warning">Wishlist</span>
+        {% else %}
+          <span class="badge bg-success">Visited</span>
+        {% endif %}
+      </td>
+      <td>{{ destination.created_at|date:"M d, Y h:i A" }}</td>
+      <td>{{ destination.updated_at|date:"M d, Y h:i A" }}</td>
+
+      <td>
+        <a href="{% url 'destination_update' destination.pk %}" class="btn btn-sm btn-outline-primary">✏️ Edit</a>
+        <a href="{% url 'destination_delete' destination.pk %}" class="btn btn-sm btn-outline-danger">🗑 Delete</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="6" class="text-center">No destinations yet. Add one!</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

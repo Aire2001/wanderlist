@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block hero %}
+<section class="py-5 text-center bg-light">
+  <div class="container">
+    <h1 class="display-4 fw-bold">Discover Your Next Adventure ✈️</h1>
+    <p class="lead">Plan, track, and organize your travel destinations with WanderList.</p>
+    {% if not user.is_authenticated %}
+      <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Get Started</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="text-center">
+  <h2 class="mb-4">Welcome to WanderList 🌍</h2>
+  <p class="lead">Your personal travel planner to keep track of all the destinations you dream of visiting.</p>
+</div>
+{% endblock %}

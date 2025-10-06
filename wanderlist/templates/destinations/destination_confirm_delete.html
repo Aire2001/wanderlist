@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block hero %}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm p-4 text-center">
+  <h2 class="fw-bold text-danger">⚠️ Confirm Delete</h2>
+  <p>Are you sure you want to delete <strong>{{ destination.name }}</strong>?</p>
+
+  <form method="post" class="d-inline">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">🗑 Yes, delete</button>
+  </form>
+  <a href="{% url 'destination_list' %}" class="btn btn-outline-secondary">❌ Cancel</a>
+</div>
+{% endblock %}
