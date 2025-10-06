@@ -36,4 +36,24 @@
     </div>
   </form>
 </div>
+
+<!-- JS Enhancement -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const countrySelect = document.getElementById("id_location");
+  const nameInput = document.getElementById("id_name");
+
+  // Enable "type to search" (default browser behavior)
+  // and auto-fill destination name based on country selection
+  if (countrySelect && nameInput) {
+    countrySelect.addEventListener("change", function() {
+      const selectedCountry = countrySelect.options[countrySelect.selectedIndex].text;
+      // Auto-fill only if destination name is empty
+      if (nameInput.value.trim() === "") {
+        nameInput.value = selectedCountry;
+      }
+    });
+  }
+});
+</script>
 {% endblock %}

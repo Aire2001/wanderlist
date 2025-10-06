@@ -31,6 +31,8 @@ def register_view(request):
             login(request, user)
             messages.success(request, "Account created successfully 🎉")
             return redirect("destination_list")
+        else:
+            messages.error(request, "Please correct the errors below ❌")
     else:
         form = CustomUserCreationForm()
     return render(request, "register.html", {"form": form})
@@ -60,20 +62,23 @@ def logout_view(request):
 # ---------- DESTINATIONS (CRUD) ----------
 @login_required
 def destination_list(request):
-    destinations = Destination.objects.filter(user=request.user).order_by("location")
+    destinations = Destination.objects.filter(user=request.user).order_by("-updated_at", "-created_at")
     return render(request, "destinations/destination_list.html", {"destinations": destinations})
 
 
 @login_required
 def destination_create(request):
+    """Create a new destination."""
     if request.method == "POST":
         form = DestinationForm(request.POST)
         if form.is_valid():
             destination = form.save(commit=False)
-            destination.user = request.user  # link to logged-in user
+            destination.user = request.user
             destination.save()
-            messages.success(request, "Destination added successfully 🎉")
+            messages.success(request, f"✅ '{destination.name}' added successfully!")
             return redirect("destination_list")
+        else:
+            messages.error(request, "Please correct the form errors ❌")
     else:
         form = DestinationForm()
     return render(request, "destinations/destination_form.html", {"form": form})
@@ -81,13 +86,17 @@ def destination_create(request):
 
 @login_required
 def destination_update(request, pk):
+    """Update an existing destination and refresh updated_at automatically."""
     destination = get_object_or_404(Destination, pk=pk, user=request.user)
     if request.method == "POST":
         form = DestinationForm(request.POST, instance=destination)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Destination updated successfully ✏️")
+            updated_destination = form.save(commit=False)
+            updated_destination.save()  # auto-updates updated_at
+            messages.success(request, f"✏️ '{updated_destination.name}' updated successfully on {updated_destination.updated_at.strftime('%b %d, %Y %I:%M %p')}")
             return redirect("destination_list")
+        else:
+            messages.error(request, "Please correct the errors below ❌")
     else:
         form = DestinationForm(instance=destination)
     return render(request, "destinations/destination_form.html", {"form": form, "destination": destination})
@@ -95,9 +104,11 @@ def destination_update(request, pk):
 
 @login_required
 def destination_delete(request, pk):
+    """Delete a destination."""
     destination = get_object_or_404(Destination, pk=pk, user=request.user)
     if request.method == "POST":
+        name = destination.name
         destination.delete()
-        messages.success(request, "Destination deleted successfully ✅")
+        messages.success(request, f"🗑 '{name}' deleted successfully.")
         return redirect("destination_list")
     return render(request, "destinations/destination_confirm_delete.html", {"destination": destination})
