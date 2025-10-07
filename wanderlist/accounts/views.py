@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_protect
+
 from .forms import (
     CustomUserCreationForm,
     CustomAuthenticationForm,
@@ -12,22 +14,32 @@ from .forms import (
 from .models import Destination, UserProfile
 
 
-# ---------- HOME ----------
+# ============================
+# ✅ HOME PAGE
+# ============================
 def home(request):
     return render(request, "home.html")
 
 
-# ---------- ABOUT ----------
+# ============================
+# ✅ ABOUT PAGE
+# ============================
 def about(request):
     return render(request, "about.html")
 
 
-# ---------- PROFILE ----------
+# ============================
+# ✅ USER PROFILE VIEW / EDIT
+# ============================
 @login_required
+@csrf_protect
 def profile_view(request):
-    """View and edit user profile (username, email, and profile picture)."""
+    """
+    View and update the logged-in user's profile.
+    Automatically creates a profile if missing.
+    """
     user = request.user
-    profile, created = UserProfile.objects.get_or_create(user=user)
+    profile, _ = UserProfile.objects.get_or_create(user=user)
 
     if request.method == "POST":
         user_form = UserUpdateForm(request.POST, instance=user)
@@ -39,68 +51,112 @@ def profile_view(request):
             messages.success(request, "✅ Profile updated successfully!")
             return redirect("profile")
         else:
-            messages.error(request, "❌ Please correct the errors below.")
+            messages.error(request, "⚠️ Please correct the errors below.")
     else:
         user_form = UserUpdateForm(instance=user)
         profile_form = ProfileUpdateForm(instance=profile)
 
-    context = {
-        "user_form": user_form,
-        "profile_form": profile_form,
-        "profile": profile,
-    }
-    return render(request, "profile.html", context)
+    return render(
+        request,
+        "profile.html",
+        {
+            "user_form": user_form,
+            "profile_form": profile_form,
+            "profile": profile,
+        },
+    )
 
 
-# ---------- AUTH ----------
+# ============================
+# ✅ USER REGISTRATION
+# ============================
+@csrf_protect
 def register_view(request):
+    """
+    Handles user registration and auto-login.
+    Ensures a UserProfile is created for the new user.
+    """
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # ✅ create a blank profile automatically
-            UserProfile.objects.create(user=user)
+            UserProfile.objects.get_or_create(user=user)
             login(request, user)
-            messages.success(request, "🎉 Account created successfully!")
+            messages.success(
+                request,
+                f"🎉 Welcome, {user.username}! Your WanderList account was created successfully."
+            )
             return redirect("destination_list")
         else:
-            messages.error(request, "❌ Please correct the errors below.")
+            messages.error(request, "⚠️ Please correct the errors below.")
     else:
         form = CustomUserCreationForm()
+
     return render(request, "register.html", {"form": form})
 
 
+# ============================
+# ✅ USER LOGIN
+# ============================
+@csrf_protect
 def login_view(request):
+    """
+    Handles user login using a custom authentication form.
+    Automatically creates a profile if missing.
+    """
     if request.method == "POST":
         form = CustomAuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            UserProfile.objects.get_or_create(user=user)
             messages.success(request, f"👋 Welcome back, {user.username}!")
-            return redirect("destination_list")
+            next_page = request.GET.get("next", "destination_list")
+            return redirect(next_page)
         else:
             messages.error(request, "❌ Invalid username or password.")
     else:
         form = CustomAuthenticationForm()
+
     return render(request, "login.html", {"form": form})
 
 
+# ============================
+# ✅ USER LOGOUT
+# ============================
+@login_required
 def logout_view(request):
     logout(request)
-    messages.info(request, "👋 You have been logged out.")
+    messages.info(request, "👋 You have been logged out successfully.")
     return redirect("login")
 
 
-# ---------- DESTINATIONS (CRUD) ----------
+# ============================
+# ✅ DESTINATIONS (CRUD)
+# ============================
+
 @login_required
 def destination_list(request):
-    destinations = Destination.objects.filter(user=request.user).order_by("-updated_at", "-created_at")
-    return render(request, "destinations/destination_list.html", {"destinations": destinations})
+    """
+    Display all destinations belonging to the logged-in user.
+    Ordered by last update or creation.
+    """
+    destinations = Destination.objects.filter(user=request.user).order_by(
+        "-updated_at", "-created_at"
+    )
+    return render(
+        request,
+        "destinations/destination_list.html",
+        {"destinations": destinations},
+    )
 
 
 @login_required
+@csrf_protect
 def destination_create(request):
-    """Create a new destination."""
+    """
+    Create a new travel destination for the logged-in user.
+    """
     if request.method == "POST":
         form = DestinationForm(request.POST)
         if form.is_valid():
@@ -110,41 +166,57 @@ def destination_create(request):
             messages.success(request, f"✅ '{destination.name}' added successfully!")
             return redirect("destination_list")
         else:
-            messages.error(request, "❌ Please correct the form errors.")
+            messages.error(request, "⚠️ Please correct the form errors below.")
     else:
         form = DestinationForm()
+
     return render(request, "destinations/destination_form.html", {"form": form})
 
 
 @login_required
+@csrf_protect
 def destination_update(request, pk):
-    """Update an existing destination and refresh updated_at automatically."""
+    """
+    Update an existing destination and refresh updated_at timestamp.
+    """
     destination = get_object_or_404(Destination, pk=pk, user=request.user)
+
     if request.method == "POST":
         form = DestinationForm(request.POST, instance=destination)
         if form.is_valid():
-            updated_destination = form.save(commit=False)
-            updated_destination.save()  # auto-updates updated_at
+            updated_destination = form.save()
             messages.success(
                 request,
-                f"✏️ '{updated_destination.name}' updated successfully on "
-                f"{updated_destination.updated_at.strftime('%b %d, %Y %I:%M %p')}"
+                f"✏️ '{updated_destination.name}' updated successfully!",
             )
             return redirect("destination_list")
         else:
-            messages.error(request, "❌ Please correct the errors below.")
+            messages.error(request, "⚠️ Please correct the errors below.")
     else:
         form = DestinationForm(instance=destination)
-    return render(request, "destinations/destination_form.html", {"form": form, "destination": destination})
+
+    return render(
+        request,
+        "destinations/destination_form.html",
+        {"form": form, "destination": destination},
+    )
 
 
 @login_required
+@csrf_protect
 def destination_delete(request, pk):
-    """Delete a destination."""
+    """
+    Delete a specific destination belonging to the logged-in user.
+    """
     destination = get_object_or_404(Destination, pk=pk, user=request.user)
     if request.method == "POST":
         name = destination.name
         destination.delete()
         messages.success(request, f"🗑 '{name}' deleted successfully.")
         return redirect("destination_list")
-    return render(request, "destinations/destination_confirm_delete.html", {"destination": destination})
+
+    return render(
+        request,
+        "destinations/destination_confirm_delete.html",
+        {"destination": destination},
+    )

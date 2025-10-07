@@ -1,0 +1,62 @@
+[
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$f4pDKtHfRbZrEJ13OGRDFk$50q0CqvDFOTmwyhAiz9PlaZBTiwf+9u+h2Istn55vwU=",
+    "last_login": "2025-10-07T02:41:53.079Z",
+    "is_superuser": true,
+    "username": "Aire2001",
+    "first_name": "",
+    "last_name": "",
+    "email": "christianaire18@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-10-07T02:19:28.382Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$bDWHTKBuB3jDps1TdGlRTw$95vWntm/gdxanP+fF/uTXYsjXg27zzFTkTticJRCz64=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "Aire23",
+    "first_name": "",
+    "last_name": "",
+    "email": "christianaire18@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-10-07T02:39:27.558Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "yih51c10rsmgchrtqa2b7qe1gtk5ge9k",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQRP-FsyGwhFI8evcbyLKwUjWQlPbU-O-2SQ96m8x7M5sIuC4lrD3PYUriKrS4_HYR6ZXrAdIT66NJanWZpygPRZ60y3tL-X073b-Dgr3sawQXrVWRcTB61AyckTQwWcM67ck59p6NIzN4D-BgRFAQPShjkEh8vuW-N5M:1v5xeD:rcvcbA8S8OabLmjMLhH7lref-IzSdLGQVw_rgvWqXQc",
+    "expire_date": "2025-10-21T02:41:53.272Z"
+  }
+},
+{
+  "model": "accounts.userprofile",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "profile_picture": ""
+  }
+},
+{
+  "model": "accounts.userprofile",
+  "pk": 2,
+  "fields": {
+    "user": 2,
+    "profile_picture": ""
+  }
+}
+]
